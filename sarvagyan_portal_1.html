@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SARVAGYAN — Viva Voce Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFE6CE;
+    --paper-dark:#E5D9B8;
+    --ink:#1B2A4E;
+    --ink-soft:#3A4A72;
+    --red-pen:#A3282A;
+    --seal-gold:#A6812C;
+    --charcoal:#2B2620;
+    --ruleline:#C9BFA0;
+    --good:#3D6B3D;
+    --bad:#A3282A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(var(--paper) 0px, var(--paper) 31px, var(--ruleline) 32px),
+      var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--charcoal);
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  .card-header{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:10px;
+    padding:18px 22px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    box-shadow:0 6px 0 rgba(0,0,0,0.08);
+    position:relative;
+    overflow:hidden;
+  }
+  .card-header::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:radial-gradient(circle at 6px 6px, rgba(239,230,206,0.15) 1.5px, transparent 1.5px);
+    background-size:14px 14px;
+    opacity:0.5;
+  }
+  .brand{display:flex;align-items:center;gap:12px;position:relative;z-index:1;}
+  .seal{
+    width:46px;height:46px;border-radius:50%;
+    border:2px solid var(--seal-gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;color:var(--seal-gold);
+    font-size:13px;letter-spacing:0.5px;transform:rotate(-8deg);
+    flex-shrink:0;
+    background:rgba(166,129,44,0.08);
+  }
+  .brand-text h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin:0;
+    letter-spacing:0.3px;
+  }
+  .brand-text p{margin:2px 0 0;font-size:12px;color:#C9C2A8;letter-spacing:0.5px;text-transform:uppercase;}
+  .meta{position:relative;z-index:1;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .timer{font-size:20px;font-weight:600;color:#F0D98C;}
+  .meta small{display:block;color:#C9C2A8;font-size:11px;margin-top:2px;letter-spacing:0.5px;}
+
+  .perf{display:flex;gap:4px;margin:16px 0 22px;flex-wrap:wrap;}
+  .perf i{
+    width:16px;height:6px;border-radius:3px;background:var(--ruleline);
+  }
+  .perf i.done{background:var(--ink);}
+  .perf i.current{background:var(--red-pen);}
+
+  .panel{
+    background:rgba(255,252,240,0.55);
+    border:1px solid var(--ruleline);
+    border-radius:8px;
+    padding:28px 30px;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;letter-spacing:1px;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:10px;
+  }
+  .qtext{
+    font-family:'Fraunces',serif;font-size:23px;line-height:1.4;color:var(--ink);
+    margin:0 0 22px;font-weight:500;
+  }
+
+  .opt-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+  .opt{
+    display:flex;align-items:center;gap:12px;
+    border:1.5px solid var(--ruleline);border-radius:6px;
+    padding:12px 14px;cursor:pointer;background:rgba(255,255,255,0.35);
+    transition:border-color 0.15s, background 0.15s;
+    font-size:15px;
+  }
+  .opt:hover{border-color:var(--ink-soft);}
+  .opt.selected{border-color:var(--ink);background:rgba(27,42,78,0.08);}
+  .opt .bubble{
+    width:22px;height:22px;border-radius:50%;border:2px solid var(--ink-soft);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);
+  }
+  .opt.selected .bubble{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .opt.correct{border-color:var(--good);background:rgba(61,107,61,0.1);}
+  .opt.correct .bubble{background:var(--good);border-color:var(--good);color:#fff;}
+  .opt.incorrect{border-color:var(--bad);background:rgba(163,40,42,0.08);}
+  .opt.incorrect .bubble{background:var(--bad);border-color:var(--bad);color:#fff;}
+  .opt.disabled{cursor:default;}
+
+  textarea{
+    width:100%;min-height:130px;
+    font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.7;
+    border:1.5px solid var(--ruleline);border-radius:6px;
+    background:
+      repeating-linear-gradient(transparent 0px, transparent 27px, rgba(150,140,110,0.35) 28px);
+    padding:10px 12px;resize:vertical;color:var(--charcoal);
+  }
+  textarea:focus{outline:none;border-color:var(--ink-soft);}
+  .wordcount{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:6px;text-align:right;}
+
+  .annotation{
+    margin-top:18px;border-left:3px solid var(--red-pen);
+    padding:10px 14px;background:rgba(163,40,42,0.05);border-radius:0 6px 6px 0;
+  }
+  .annotation .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:0.5px;color:var(--red-pen);margin-bottom:4px;display:block;
+  }
+  .annotation p, .annotation li{
+    font-family:'Caveat',cursive;font-size:20px;color:var(--red-pen);line-height:1.35;margin:0;
+  }
+  .annotation ul{margin:4px 0 0 20px;padding:0;}
+
+  .crossq{
+    margin-top:14px;padding:12px 14px;border:1.5px dashed var(--red-pen);border-radius:6px;
+  }
+  .crossq label{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;color:var(--red-pen);display:block;margin-bottom:6px;}
+  .crossq textarea{min-height:70px;}
+
+  .loading{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:14px;}
+
+  .btnrow{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:10px;}
+  button{
+    font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:14px;
+    border:none;border-radius:6px;padding:11px 20px;cursor:pointer;
+    transition:transform 0.1s, opacity 0.15s;
+  }
+  button:active{transform:scale(0.97);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-primary{background:var(--ink);color:var(--paper);}
+  .btn-primary:hover:not(:disabled){background:var(--ink-soft);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);text-decoration:underline;padding:11px 4px;}
+
+  .start-panel{padding:40px 32px;text-align:center;}
+  .start-panel h2{font-family:'Fraunces',serif;font-size:28px;color:var(--ink);margin-bottom:8px;}
+  .start-panel p{color:var(--ink-soft);font-size:15px;line-height:1.6;max-width:480px;margin:0 auto 24px;}
+  .start-panel input{
+    width:100%;max-width:320px;padding:11px 14px;font-size:15px;
+    border:1.5px solid var(--ruleline);border-radius:6px;background:rgba(255,255,255,0.5);
+    margin-bottom:18px;font-family:'IBM Plex Sans',sans-serif;
+  }
+  .taglist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:26px;}
+  .tag-chip{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);
+    border:1px solid var(--ruleline);border-radius:20px;padding:4px 10px;
+  }
+  .shuffle-note{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--seal-gold);
+    margin-bottom:18px;letter-spacing:0.3px;
+  }
+
+  .stamp{
+    position:absolute;top:20px;right:26px;
+    font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:var(--red-pen);
+    border:3px solid var(--red-pen);border-radius:6px;padding:6px 14px;
+    transform:rotate(-9deg);opacity:0.75;letter-spacing:1px;
+    pointer-events:none;
+  }
+  .score-block{display:flex;gap:24px;margin:10px 0 24px;flex-wrap:wrap;}
+  .score-item{
+    flex:1;min-width:140px;border:1.5px solid var(--ruleline);border-radius:8px;
+    padding:16px;text-align:center;background:rgba(255,255,255,0.35);
+  }
+  .score-item .num{font-family:'Fraunces',serif;font-size:32px;color:var(--ink);font-weight:600;}
+  .score-item .lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;color:var(--ink-soft);margin-top:2px;}
+  .review-item{border-top:1px solid var(--ruleline);padding:16px 0;}
+  .review-item .eyebrow{margin-bottom:4px;}
+  .review-item .qt{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);margin:0 0 8px;}
+  .review-item .your{font-size:14px;margin-bottom:6px;}
+  .review-item .your b{color:var(--ink-soft);}
+  .badge{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;
+    padding:2px 8px;border-radius:10px;margin-left:8px;
+  }
+  .badge.correct{background:rgba(61,107,61,0.15);color:var(--good);}
+  .badge.incorrect{background:rgba(163,40,42,0.15);color:var(--bad);}
+
+  .footer-row{display:flex;justify-content:center;gap:14px;margin-top:26px;}
+
+  @media print{
+    .card-header .timer, .btnrow, .footer-row{display:none;}
+  }
+
+  @media (max-width:520px){
+    .card-header{flex-direction:column;align-items:flex-start;}
+    .meta{text-align:left;}
+    .panel{padding:20px 18px;}
+    .qtext{font-size:20px;}
+    .stamp{position:static;display:inline-block;margin-bottom:10px;transform:rotate(-4deg);}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ================= MASTER QUESTION BANK (fixed content, never mutated) ================= */
+const QUESTIONS = [
+  {id:1, section:"Guesstimate", type:"short",
+   q:"Estimate the number of auto-rickshaws in Chennai. Walk through your assumptions.",
+   points:["Start from city population (~70–90 lakh) and estimate households or daily commuters needing last-mile transport","Estimate rickshaws per 1,000 people or per sq km using a comparable city benchmark","Cross-check using a supply-side angle: registered auto permits, or average trips per rickshaw per day","State a final single number, not a range, and sanity check it against city-level anecdotes"]},
+
+  {id:2, section:"Guesstimate", type:"short",
+   q:"Estimate the number of trees in a 1 square km area. State which kind of area you're assuming.",
+   points:["Explicitly pick a zone type — dense urban, suburban residential, or green/park — the answer changes by 10–50x","Break the sq km into sub-zones (roads, buildings, open plots, parks) and estimate tree density per zone","Use a reasonable per-hectare density benchmark rather than a bare guess","Combine sub-zone estimates into one final number and state your zone assumption clearly"]},
+
+  {id:3, section:"Guesstimate", type:"short",
+   q:"In a pond that is about 100 square metres, estimate the number of fish.",
+   points:["Convert area to volume using an assumed average depth (1–2 m for a small pond)","Apply a fish-density-per-cubic-metre benchmark for a lightly stocked natural pond vs a managed one","State which scenario (wild pond vs stocked fishery) you're assuming, since density differs sharply","Arrive at one final estimate and briefly sanity-check it against pond-keeping norms"]},
+
+  {id:4, section:"Guesstimate", type:"short",
+   q:"Mangolia has a population of 20 crore and an area of 1 million sq km. Estimate the number of motorcars in the country.",
+   points:["Use population density (200/sq km) to infer likely urbanization level, which drives car ownership","Split population into urban vs rural, since car penetration differs greatly between the two","Apply a car-ownership rate per capita or per household based on an assumed income level","Sanity check the final number against a real comparable country of similar density and income"]},
+
+  {id:5, section:"Marketing Management", type:"mcq",
+   q:"Which of the following best describes 'positioning' in marketing?",
+   options:["The physical placement of a product on a retail shelf","The place a brand occupies in the customer's mind relative to competitors","The pricing tier a product is launched at","The geographic markets a company chooses to enter"],
+   correct:1,
+   explain:"Positioning is about the mental space a brand occupies relative to competitors — not shelf placement, price tier, or geography."},
+
+  {id:6, section:"Marketing Management", type:"short",
+   q:"Explain the difference between the 4Ps and 7Ps marketing mix, and why the extra 3Ps matter more for services than products.",
+   points:["4Ps: Product, Price, Place, Promotion — fits tangible physical goods well","7Ps adds People, Process, Physical Evidence — needed because services are intangible and consumed as they're delivered","People matters because service quality depends heavily on staff who deliver it","Physical Evidence and Process matter because customers judge an intangible service through tangible cues and the experience of receiving it"]},
+
+  {id:7, section:"B2B Marketing", type:"mcq",
+   q:"Which of the following typically differentiates B2B buying behaviour from B2C?",
+   options:["Purchases are driven mainly by emotion","Multiple stakeholders form a buying/decision-making unit","Purchases are usually impulsive","Average order values are low"],
+   correct:1,
+   explain:"B2B purchases usually go through a Decision-Making Unit (DMU) — multiple stakeholders (users, influencers, budget-holders) — unlike typically individual, faster B2C decisions."},
+
+  {id:8, section:"B2B Marketing", type:"short",
+   q:"What is Account-Based Marketing (ABM), and when would a company choose it over traditional lead generation?",
+   points:["ABM treats individual high-value accounts as a 'market of one' rather than casting a wide net","Marketing and sales jointly target named accounts with highly tailored content and outreach","Best suited when deal sizes are large, sales cycles are long, and the addressable market has few high-value accounts (e.g. enterprise SaaS)","Traditional lead-gen suits high-volume, lower-value, broader markets instead"]},
+
+  {id:9, section:"Sales & Distribution", type:"mcq",
+   q:"A luxury watch brand allows only a small number of high-end stores to carry its product. This is:",
+   options:["Intensive distribution","Selective distribution","Exclusive distribution","Direct distribution"],
+   correct:2,
+   explain:"Exclusive distribution restricts sales to a very limited set of outlets, typically to protect brand prestige — common for luxury goods."},
+
+  {id:10, section:"Sales & Distribution", type:"short",
+   q:"What is channel conflict in distribution management, and how can a company mitigate it?",
+   points:["Channel conflict arises when different distribution channels (e.g. own website vs retail partners) compete for the same customer, causing friction","Vertical conflict (manufacturer vs distributor) and horizontal conflict (distributor vs distributor) are two common forms","Mitigation: clear territory/pricing rules, differentiated product lines per channel, or margin protection for partners","Regular communication and a channel conflict resolution policy help sustain long-term partner trust"]},
+
+  {id:11, section:"Ratio Analysis", type:"mcq",
+   q:"The Current Ratio is calculated as:",
+   options:["Current Assets / Current Liabilities","Net Profit / Sales","Equity / Debt","Revenue / Total Assets"],
+   correct:0,
+   explain:"Current Ratio = Current Assets / Current Liabilities — it measures short-term liquidity, i.e. ability to meet near-term obligations."},
+
+  {id:12, section:"Cash Flow Analysis", type:"short",
+   q:"A company shows strong net profit but negative operating cash flow. What could explain this, and why should an interviewer probe further?",
+   points:["Net profit is accrual-based; it can include revenue not yet collected (rising receivables) or non-cash income","Large increases in inventory or receivables consume cash even while boosting reported profit","Aggressive revenue recognition or one-time non-cash gains can inflate profit without matching cash inflow","An interviewer probes this because it can signal working-capital stress or, in worse cases, earnings quality issues"]},
+
+  {id:13, section:"Digital Transformation", type:"short",
+   q:"What key elements should a business case for a digitisation project include to convince leadership to invest?",
+   points:["Clear problem statement and current-state pain points (cost, time, error rate)","Quantified benefits — cost savings, revenue upside, risk reduction — with a payback period / ROI estimate","Implementation cost, timeline, and resourcing plan, including change management effort","Risks and a mitigation plan, plus a recommendation with alternatives considered"]},
+
+  {id:14, section:"IT Strategy", type:"mcq",
+   q:"Digital transformation primarily refers to:",
+   options:["Buying the latest hardware for employees","Using digital technology to fundamentally change business models and processes","Outsourcing the IT helpdesk","Automating payroll processing only"],
+   correct:1,
+   explain:"Digital transformation is about rethinking business models, processes, and customer experience using digital technology — not a single tool or function."},
+
+  {id:15, section:"Change Management", type:"short",
+   q:"Scenario: Your ERP rollout is facing resistance from mid-level managers who fear the new system reduces their control over data. As project lead, how would you handle this?",
+   points:["Identify the root concern (loss of control/visibility) rather than treating it as generic resistance to change","Involve the managers early — as design input-givers or pilot users — to build ownership instead of forcing compliance","Communicate what they gain (better reporting, less manual reconciliation) alongside what changes","Use a structured change framework (e.g. ADKAR or Kotter) to sequence awareness, desire, and reinforcement rather than a one-time announcement"]},
+
+  {id:16, section:"Supply Chain", type:"mcq",
+   q:"The 'bullwhip effect' in supply chain refers to:",
+   options:["A sudden drop in customer demand","Amplification of demand variability as you move upstream in the supply chain","Excess factory capacity","Volatility in raw material prices"],
+   correct:1,
+   explain:"The bullwhip effect describes how small fluctuations in end-customer demand get amplified into larger swings in orders as you move upstream from retailer to distributor to manufacturer."},
+
+  {id:17, section:"Supply Chain", type:"short",
+   q:"What causes the bullwhip effect, and name two ways to mitigate it.",
+   points:["Causes: order batching, demand forecasting based on downstream orders rather than real demand, promotions, and long lead times","Each tier adds a buffer/safety margin, compounding variability upstream","Mitigation: share real point-of-sale demand data across the chain (reduce information distortion)","Mitigation: shorten lead times, use smaller/more frequent order batches, and stabilise pricing to avoid promotion-driven order spikes"]},
+
+  {id:18, section:"Leadership & PMO", type:"short",
+   q:"What is the role of a Project Management Office (PMO) in a large organisation, and how does it differ from a project manager's role?",
+   points:["A PMO sets standards, governance, and reporting templates across multiple projects/programs, rather than running one project","It tracks portfolio-level health — resource allocation, risk, and prioritisation across projects","A project manager owns delivery of a single project's scope, schedule, and budget","PMO maturity ranges from a supportive (advisory) role to a controlling or directive role depending on organisational governance needs"]},
+
+  {id:19, section:"BCP & Risk", type:"mcq",
+   q:"Business Continuity Planning (BCP) in IT projects primarily aims to:",
+   options:["Increase sales during the peak season","Ensure critical operations continue during and after a disruption","Reduce employee headcount","Improve marketing ROI"],
+   correct:1,
+   explain:"BCP is about keeping critical business functions running (or recovering them quickly) during disruptions like outages, disasters, or cyber incidents — distinct from a disaster recovery plan, which is IT-systems-focused and usually a subset of BCP."},
+
+  {id:20, section:"Securities & Portfolio", type:"mcq",
+   q:"In portfolio management, diversification primarily helps to:",
+   options:["Guarantee higher returns","Reduce unsystematic (company/sector-specific) risk","Eliminate all investment risk","Increase transaction costs"],
+   correct:1,
+   explain:"Diversification reduces unsystematic risk by spreading exposure across assets whose returns aren't perfectly correlated. Systematic (market-wide) risk remains and cannot be diversified away."}
+];
+
+const TOTAL_TIME = 45*60; // seconds
+
+/* ================= SHUFFLE HELPERS ================= */
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// Builds a fresh, randomised working copy of the question bank:
+// - question order is shuffled every attempt
+// - MCQ option order is independently shuffled per question, with the correct index remapped
+// The master QUESTIONS array is never mutated, so every attempt starts clean.
+function prepareActiveQuestions(){
+  const orderShuffled = shuffleArray(QUESTIONS);
+  return orderShuffled.map(q=>{
+    if(q.type==='mcq'){
+      const tagged = q.options.map((opt,i)=>({opt,i}));
+      const optShuffled = shuffleArray(tagged);
+      return {
+        ...q,
+        options: optShuffled.map(o=>o.opt),
+        correct: optShuffled.findIndex(o=>o.i===q.correct)
+      };
+    }
+    return {...q};
+  });
+}
+
+/* ================= STATE ================= */
+let ACTIVE_QUESTIONS = [];
+
+let state = {
+  screen:'start',
+  name:'',
+  roll:'SVG-'+Math.floor(1000+Math.random()*8999),
+  idx:0,
+  timeLeft:TOTAL_TIME,
+  timerHandle:null,
+  answers:{}, // qid -> {selected, correct, text, feedback, crossQuestion, crossReply, status}
+};
+
+const app = document.getElementById('app');
+
+/* ================= HELPERS ================= */
+function fmtTime(s){
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = (s%60).toString().padStart(2,'0');
+  return m+':'+sec;
+}
+function wordCount(str){
+  return (str.trim().match(/\S+/g) || []).length;
+}
+
+/* ================= RENDER: START ================= */
+function renderStart(){
+  const topics = [...new Set(QUESTIONS.map(q=>q.section))];
+  app.innerHTML = `
+    <div class="card-header">
+      <div class="brand">
+        <div class="seal">सर्व<br>ज्ञान</div>
+        <div class="brand-text">
+          <h1>SARVAGYAN</h1>
+          <p>Viva Voce Portal · Placement Prep</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="timer">45:00</div>
+        <small>Not started</small>
+      </div>
+    </div>
+    <div class="panel start-panel" style="margin-top:20px;">
+      <h2>Management / HR / Aptitude — Mock Round</h2>
+      <p>20 questions across guesstimates and core management domains, mixing MCQ and short (~100 word) answers, with follow-up cross-questioning on your written responses. You have 45 minutes once you begin.</p>
+      <div class="shuffle-note">⟲ Question order and MCQ option order reshuffle on every attempt</div>
+      <div class="taglist">
+        ${topics.map(t=>`<span class="tag-chip">${t}</span>`).join('')}
+      </div>
+      <input id="nameInput" type="text" placeholder="Enter your name to begin" />
+      <div>
+        <button class="btn-primary" id="beginBtn">Begin Test</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('beginBtn').onclick = () => {
+    const val = document.getElementById('nameInput').value.trim();
+    state.name = val || 'Candidate';
+    state.screen = 'quiz';
+    ACTIVE_QUESTIONS = prepareActiveQuestions();
+    startTimer();
+    render();
+  };
+}
+
+/* ================= TIMER ================= */
+function startTimer(){
+  clearInterval(state.timerHandle);
+  state.timerHandle = setInterval(()=>{
+    state.timeLeft--;
+    if(state.timeLeft<=0){
+      state.timeLeft = 0;
+      clearInterval(state.timerHandle);
+      state.screen = 'summary';
+      render();
+      return;
+    }
+    const tEl = document.querySelector('.timer');
+    if(tEl) tEl.textContent = fmtTime(state.timeLeft);
+  },1000);
+}
+
+/* ================= RENDER: HEADER (shared in quiz/summary) ================= */
+function headerHTML(subtitle){
+  return `
+    <div class="card-header">
+      <div class="brand">
+        <div class="seal">सर्व<br>ज्ञान</div>
+        <div class="brand-text">
+          <h1>SARVAGYAN</h1>
+          <p>${subtitle}</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="timer">${fmtTime(state.timeLeft)}</div>
+        <small>${state.name} · ${state.roll}</small>
+      </div>
+    </div>
+  `;
+}
+
+function perfHTML(){
+  return `<div class="perf">${ACTIVE_QUESTIONS.map((q,i)=>{
+    let cls='';
+    if(i<state.idx) cls='done';
+    else if(i===state.idx) cls='current';
+    return `<i class="${cls}"></i>`;
+  }).join('')}</div>`;
+}
+
+/* ================= RENDER: QUIZ ================= */
+function renderQuiz(){
+  const q = ACTIVE_QUESTIONS[state.idx];
+  const saved = state.answers[q.id] || {};
+
+  app.innerHTML = headerHTML(`Viva Voce Portal · Question ${state.idx+1} of ${ACTIVE_QUESTIONS.length}`) + perfHTML() + `
+    <div class="panel">
+      <div class="eyebrow">${q.section} · ${q.type==='mcq'?'Multiple Choice':'Short Answer'}</div>
+      <p class="qtext">${q.q}</p>
+      <div id="qbody"></div>
+      <div class="btnrow">
+        <button class="btn-ghost" id="skipBtn">${state.idx===ACTIVE_QUESTIONS.length-1?'Skip to memo →':'Skip →'}</button>
+        <button class="btn-primary" id="mainBtn" disabled>Submit</button>
+      </div>
+    </div>
+  `;
+
+  const qbody = document.getElementById('qbody');
+  const mainBtn = document.getElementById('mainBtn');
+  const skipBtn = document.getElementById('skipBtn');
+
+  skipBtn.onclick = ()=> goNext();
+
+  if(q.type==='mcq'){
+    renderMCQBody(q, saved, qbody, mainBtn);
+  } else {
+    renderShortBody(q, saved, qbody, mainBtn);
+  }
+}
+
+function goNext(){
+  if(state.idx < ACTIVE_QUESTIONS.length-1){
+    state.idx++;
+    render();
+  } else {
+    clearInterval(state.timerHandle);
+    state.screen='summary';
+    render();
+  }
+}
+
+/* ---- MCQ ---- */
+function renderMCQBody(q, saved, container, mainBtn){
+  let selected = saved.selected ?? null;
+  const answered = saved.status === 'done';
+
+  function draw(){
+    container.innerHTML = `
+      <div class="opt-list">
+        ${q.options.map((opt,i)=>{
+          let cls='opt';
+          if(answered){
+            cls+=' disabled';
+            if(i===q.correct) cls+=' correct';
+            else if(i===selected && selected!==q.correct) cls+=' incorrect';
+          } else if(i===selected){
+            cls+=' selected';
+          }
+          const letter = String.fromCharCode(65+i);
+          return `<div class="${cls}" data-i="${i}"><span class="bubble">${letter}</span><span>${opt}</span></div>`;
+        }).join('')}
+      </div>
+      ${answered ? `<div class="annotation"><span class="tag">Examiner's note</span><p>${q.explain}</p></div>` : ''}
+    `;
+    if(!answered){
+      container.querySelectorAll('.opt').forEach(el=>{
+        el.onclick = ()=>{
+          selected = parseInt(el.dataset.i,10);
+          draw();
+          mainBtn.disabled = false;
+        };
+      });
+    }
+  }
+  draw();
+
+  mainBtn.textContent = answered ? 'Continue' : 'Submit';
+  mainBtn.disabled = !answered && selected===null;
+  mainBtn.onclick = ()=>{
+    if(!answered){
+      const isCorrect = selected===q.correct;
+      state.answers[q.id] = {selected, correct:isCorrect, status:'done', type:'mcq'};
+      renderMCQBody(q, state.answers[q.id], container, mainBtn);
+    } else {
+      goNext();
+    }
+  };
+}
+
+/* ---- Short answer ---- */
+function renderShortBody(q, saved, container, mainBtn){
+  const answered = saved.status === 'done';
+  const text = saved.text || '';
+
+  container.innerHTML = `
+    <textarea id="shortText" placeholder="Type your answer (aim for ~100 words)…" ${answered?'disabled':''}>${text}</textarea>
+    <div class="wordcount" id="wc">${wordCount(text)} words</div>
+    <div id="annotationSlot"></div>
+  `;
+
+  const ta = document.getElementById('shortText');
+  const wc = document.getElementById('wc');
+
+  if(!answered){
+    ta.addEventListener('input', ()=>{
+      wc.textContent = wordCount(ta.value) + ' words';
+      mainBtn.disabled = ta.value.trim().length < 10;
+    });
+    mainBtn.disabled = ta.value.trim().length < 10;
+  } else {
+    renderAnnotation(q, saved, container);
+    mainBtn.textContent = 'Continue';
+    mainBtn.disabled = false;
+  }
+
+  mainBtn.onclick = async ()=>{
+    if(!answered){
+      const val = ta.value.trim();
+      mainBtn.disabled = true;
+      mainBtn.textContent = 'Evaluating…';
+      const slot = document.getElementById('annotationSlot');
+      slot.innerHTML = `<div class="loading">Consulting the examiner's notes…</div>`;
+
+      const result = await getFeedback(q, val);
+      state.answers[q.id] = {text:val, status:'done', type:'short', feedback:result.feedback, crossQuestion:result.crossQuestion, usedFallback:result.usedFallback};
+      renderAnnotation(q, state.answers[q.id], container);
+      mainBtn.textContent = 'Continue';
+      mainBtn.disabled = false;
+      mainBtn.onclick = ()=> goNext();
+    }
+  };
+}
+
+function renderAnnotation(q, saved, container){
+  const slot = document.getElementById('annotationSlot');
+  let html = '';
+  if(saved.usedFallback){
+    html += `<div class="annotation"><span class="tag">Key points to cover</span>
+      <ul>${q.points.map(p=>`<li>${p}</li>`).join('')}</ul></div>`;
+  } else {
+    html += `<div class="annotation"><span class="tag">Examiner's note</span><p>${saved.feedback}</p></div>`;
+  }
+  if(saved.crossQuestion){
+    html += `<div class="crossq">
+      <label>Cross-question</label>
+      <p style="font-family:'Fraunces',serif;font-size:15px;color:var(--ink);margin:0 0 8px;">${saved.crossQuestion}</p>
+      <textarea id="crossReply" placeholder="Optional — respond to the follow-up, or leave blank and continue.">${saved.crossReply||''}</textarea>
+    </div>`;
+  }
+  slot.innerHTML = html;
+  const cr = document.getElementById('crossReply');
+  if(cr){
+    cr.addEventListener('input', ()=>{ saved.crossReply = cr.value; });
+  }
+}
+
+/* ================= AI FEEDBACK CALL ================= */
+async function getFeedback(q, answerText){
+  const fallback = {feedback:null, crossQuestion:null, usedFallback:true};
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 12000);
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      signal: controller.signal,
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:300,
+        messages:[{
+          role:"user",
+          content:`You are a strict but fair placement interview panelist evaluating a management/HR candidate's spoken-style answer. 
+Question: "${q.q}"
+Candidate's answer: "${answerText}"
+Key points a strong answer should touch (for your reference only, don't quote verbatim): ${q.points.join('; ')}
+
+Respond with ONLY a raw JSON object, no markdown fences, no preamble:
+{"feedback": "2-3 sentence direct feedback on the answer's strengths and gaps", "crossQuestion": "one short probing follow-up question testing depth, or null if the answer was already thorough"}`
+        }]
+      })
+    });
+    clearTimeout(timeout);
+    if(!response.ok) return fallback;
+    const data = await response.json();
+    const textBlock = (data.content||[]).find(c=>c.type==='text');
+    if(!textBlock) return fallback;
+    const cleaned = textBlock.text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(cleaned);
+    return {feedback: parsed.feedback || null, crossQuestion: parsed.crossQuestion || null, usedFallback: !parsed.feedback};
+  } catch(err){
+    return fallback;
+  }
+}
+
+/* ================= RENDER: SUMMARY ================= */
+function renderSummary(){
+  const mcqQs = ACTIVE_QUESTIONS.filter(q=>q.type==='mcq');
+  const mcqCorrect = mcqQs.filter(q=> state.answers[q.id] && state.answers[q.id].correct).length;
+  const shortQs = ACTIVE_QUESTIONS.filter(q=>q.type==='short');
+  const shortAnswered = shortQs.filter(q=> state.answers[q.id]).length;
+  const timeUsed = TOTAL_TIME - state.timeLeft;
+
+  app.innerHTML = headerHTML('Viva Voce Portal · Mark Memo') + `
+    <div class="panel" style="position:relative;">
+      <div class="stamp">EVALUATED</div>
+      <div class="eyebrow">Result Summary</div>
+      <p class="qtext" style="font-size:20px;">${state.name} · ${state.roll}</p>
+
+      <div class="score-block">
+        <div class="score-item"><div class="num">${mcqCorrect}/${mcqQs.length}</div><div class="lbl">MCQ Correct</div></div>
+        <div class="score-item"><div class="num">${shortAnswered}/${shortQs.length}</div><div class="lbl">Short Answers Given</div></div>
+        <div class="score-item"><div class="num">${fmtTime(timeUsed)}</div><div class="lbl">Time Used</div></div>
+      </div>
+
+      <div id="reviewList">
+        ${ACTIVE_QUESTIONS.map(q=>{
+          const a = state.answers[q.id];
+          if(!a) return `<div class="review-item">
+            <div class="eyebrow">${q.section}</div>
+            <p class="qt">${q.q} <span class="badge incorrect">Skipped</span></p>
+          </div>`;
+          if(q.type==='mcq'){
+            return `<div class="review-item">
+              <div class="eyebrow">${q.section}</div>
+              <p class="qt">${q.q} <span class="badge ${a.correct?'correct':'incorrect'}">${a.correct?'Correct':'Incorrect'}</span></p>
+              <div class="your"><b>Your answer:</b> ${q.options[a.selected]}</div>
+              <div class="your"><b>Correct answer:</b> ${q.options[q.correct]}</div>
+            </div>`;
+          } else {
+            return `<div class="review-item">
+              <div class="eyebrow">${q.section}</div>
+              <p class="qt">${q.q}</p>
+              <div class="your"><b>Your answer:</b> ${a.text}</div>
+              ${a.usedFallback
+                ? `<div class="annotation"><span class="tag">Key points to cover</span><ul>${q.points.map(p=>`<li>${p}</li>`).join('')}</ul></div>`
+                : `<div class="annotation"><span class="tag">Examiner's note</span><p>${a.feedback}</p></div>`}
+              ${a.crossReply ? `<div class="your" style="margin-top:8px;"><b>Your follow-up reply:</b> ${a.crossReply}</div>` : ''}
+            </div>`;
+          }
+        }).join('')}
+      </div>
+
+      <div class="footer-row">
+        <button class="btn-primary" id="printBtn">Print / Save Memo</button>
+        <button class="btn-ghost" id="restartBtn">Restart Test (new shuffle)</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('printBtn').onclick = ()=> window.print();
+  document.getElementById('restartBtn').onclick = ()=>{
+    clearInterval(state.timerHandle);
+    state = {screen:'start', name:'', roll:'SVG-'+Math.floor(1000+Math.random()*8999), idx:0, timeLeft:TOTAL_TIME, timerHandle:null, answers:{}};
+    ACTIVE_QUESTIONS = [];
+    render();
+  };
+}
+
+/* ================= MAIN RENDER SWITCH ================= */
+function render(){
+  if(state.screen==='start') renderStart();
+  else if(state.screen==='quiz') renderQuiz();
+  else renderSummary();
+}
+
+render();
+</script>
+</body>
+</html>
